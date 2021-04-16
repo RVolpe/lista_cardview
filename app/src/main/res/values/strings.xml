@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">lista_cardview</string>
+    <string name="iv_foto_context_description">Não sei o que escrever</string>
+
 </resources>
