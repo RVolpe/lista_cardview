@@ -1,5 +1,6 @@
 package com.mineiro.lista_cardview
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -12,12 +13,13 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.mineiro.lista_cardview.DetailActivity.Companion.EXTRA_CONTACT
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ClickItemContactListener {
     private val rvList: RecyclerView by lazy {
         findViewById<RecyclerView>(R.id.rv_List)
     }
-    private val adapterMain = ContactAdapter()
+    private val adapterMain = ContactAdapter(this)   //minha interface já implementa o ClickItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +28,24 @@ class MainActivity : AppCompatActivity() {
 
         initDrawer()
         bindViews()
-        updateList()
+        //updateList()
+        fetchListContact()
+    }
+
+    private fun fetchListContact() {
+        // para ler dados de favoritos no SharedPreferences
+        var list = arrayListOf(
+            Contact(
+                "Rodrigo Volpe",
+                "(21) 99222-3456",
+                "teste.png"
+            ),
+            Contact(
+                "Tiago XXXX",
+                "(21) 99333-3444",
+                "teste2.png"
+            )
+        )
     }
 
     private fun initDrawer() {
@@ -46,20 +65,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateList() {
-        adapterMain.updateList(
-            arrayListOf(
-                Contact(
-                    "Rodrigo Volpe",
-                    "(21) 99222-3456",
-                    "teste.png"
-                ),
-                 Contact(
-                    "Rodrigo Volpe",
-                    "(21) 99222-3456",
-                    "teste.png"
-                )
-            )
-        )
+        //adapterMain.updateList()
     }
 
     private fun showToast(message: String) {
@@ -84,5 +90,12 @@ class MainActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun clickItemContact(contact: Contact) {
+        //quando clica no item, abre a Ativity do delatelhe
+        val intent = Intent(this, DetailActivity::class.java)
+        intent.putExtra(EXTRA_CONTACT, contact)     //chave, valor -> para enviar dados para outra tela
+        startActivity(intent)
     }
 }
