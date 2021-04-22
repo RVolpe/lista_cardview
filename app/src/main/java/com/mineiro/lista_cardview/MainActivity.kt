@@ -1,18 +1,24 @@
 package com.mineiro.lista_cardview
 
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.edit
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.mineiro.lista_cardview.DetailActivity.Companion.EXTRA_CONTACT
 
 class MainActivity : AppCompatActivity(), ClickItemContactListener {
@@ -27,25 +33,33 @@ class MainActivity : AppCompatActivity(), ClickItemContactListener {
         setContentView(R.layout.drawer_menu)
 
         initDrawer()
-        bindViews()
-        //updateList()
         fetchListContact()
+        bindViews()
     }
 
     private fun fetchListContact() {
         // para ler dados de favoritos no SharedPreferences
         var list = arrayListOf(
-            Contact(
-                "Rodrigo Volpe",
-                "(21) 99222-3456",
-                "teste.png"
-            ),
-            Contact(
-                "Tiago XXXX",
-                "(21) 99333-3444",
-                "teste2.png"
-            )
+                Contact(
+                        "Rodrigo Volpe",
+                        "(21) 99222-3456",
+                        "teste.png"
+                ),
+                Contact(
+                        "Tiago XXXX",
+                        "(21) 99333-3444",
+                        "teste2.png"
+                )
         )
+        // transformar a lista acima em string, usando JSON
+        getInstanceSharedPreferences()?.edit() {
+            putString("Contacts", Gson().toJson(list))
+            commit()       // vai salvar os dados em disco, antes de fazer a consulta
+        }
+    }
+
+    private fun getInstanceSharedPreferences(): SharedPreferences? {
+        return getSharedPreferences("com.mineiro.lista_cardview.PREFERENCES", Context.MODE_PRIVATE)
     }
 
     private fun initDrawer() {
@@ -62,10 +76,18 @@ class MainActivity : AppCompatActivity(), ClickItemContactListener {
     private fun bindViews() {
         rvList.adapter = adapterMain    //fiz a união dos 2 adapters
         rvList.layoutManager = LinearLayoutManager(this)
+        updateList()
+    }
+
+    private fun getListContacts() : List<Contact>{
+        //converte uma string em objeto de classe
+        val list2 = getInstanceSharedPreferences()?.getString("Contacts", "[]")
+        val turnsType = object : TypeToken<List<Contact>>() {}.type
+        return Gson().fromJson(list2, turnsType)
     }
 
     private fun updateList() {
-        //adapterMain.updateList()
+        adapterMain.updateList(getListContacts())
     }
 
     private fun showToast(message: String) {
@@ -93,7 +115,7 @@ class MainActivity : AppCompatActivity(), ClickItemContactListener {
     }
 
     override fun clickItemContact(contact: Contact) {
-        //quando clica no item, abre a Ativity do delatelhe
+        //quando clica no item, abre a Activity do detalhe
         val intent = Intent(this, DetailActivity::class.java)
         intent.putExtra(EXTRA_CONTACT, contact)     //chave, valor -> para enviar dados para outra tela
         startActivity(intent)
